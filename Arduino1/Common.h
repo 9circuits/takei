@@ -3,7 +3,7 @@
 
 #include "Arduino.h"
 
- #define TAKEI_DEBUG_ON
+// #define TAKEI_DEBUG_ON
 
 #ifdef TAKEI_DEBUG_ON 
     #define initLog(speed) Serial.begin(speed)

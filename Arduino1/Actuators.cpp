@@ -9,7 +9,7 @@ void MotorRunAction::init(byte pin, byte f)
     setFrequency(f);
     
     pinMode(pinNumber, OUTPUT);
-    //logWrite(pinNumber, 0);  
+    analogWrite(pinNumber, 0);  
 };
 
 void MotorRunAction::setFrequency(byte f) 
@@ -28,9 +28,9 @@ void MotorRunAction::runAction()
     
     old_millis = millis();
     
-    //logWrite(pinNumber, frequency);
+    analogWrite(pinNumber, frequency);
     
-    //log("Running motor run action...");
+    // log("Running motor run action...");
 };
 
 void MotorRunAction::stopAction() 
@@ -42,10 +42,10 @@ void MotorRunAction::stopAction()
     
     isRunning = 0;
     
-    //logWrite(pinNumber, 0);
+    analogWrite(pinNumber, 0);
     
-    //logLine("");
-    //logLine("Stopping motor run action...");
+    // logLine("");
+    // logLine("Stopping motor run action...");
 };
 
 void MotorRunAction::update() 
@@ -54,8 +54,6 @@ void MotorRunAction::update()
         return;
     }
 };
-
-
 
 void MotorLerpAction::init(byte pin, byte sf, byte ef, unsigned int duration, byte loopBack) 
 {
@@ -73,7 +71,7 @@ void MotorLerpAction::init(byte pin, byte sf, byte ef, unsigned int duration, by
     loop = loopBack;
             
     pinMode(pinNumber, OUTPUT);
-    //logWrite(pinNumber, 0);  
+    analogWrite(pinNumber, 0);  
 };
 
 void MotorLerpAction::setFrequencyRange(byte sf, byte ef) 
@@ -99,7 +97,7 @@ void MotorLerpAction::runAction()
     
     old_millis = millis();
     
-    //log("Running motor lerp action...");
+    // log("Running motor lerp action...");
 };
 
 void MotorLerpAction::stopAction() 
@@ -113,13 +111,13 @@ void MotorLerpAction::stopAction()
     
     currentFrequency = startFrequency;
     
-    //logWrite(pinNumber, 0);
+    analogWrite(pinNumber, 0);
 
-    //logLine("");
-    //logLine("Stopping motor lerp action...");
+    // logLine("");
+    // logLine("Stopping motor lerp action...");
 };
 
-void MotorLerpAction::update() 
+void MotorLerpAction::update()
 {
     if(!isRunning) {
         return;
@@ -139,7 +137,7 @@ void MotorLerpAction::update()
     if ((millis() - old_millis) > timeDivision) {
         currentFrequency = currentFrequency + 1 * multiplier;
         
-        // log(pinNumber, currentFrequency);
+        analogWrite(pinNumber, currentFrequency);
         
         old_millis = millis();
         
@@ -147,8 +145,6 @@ void MotorLerpAction::update()
         // log(", ");
     }
 };
-
-
 
 void RelayClickAction::init(byte pin, unsigned int duration) 
 {
@@ -177,7 +173,7 @@ void RelayClickAction::runAction() {
     
     old_millis = millis();
     
-    //log("Running relay action...");
+    log("Running relay action...");
 };
 
 void RelayClickAction::stopAction() 
@@ -192,8 +188,8 @@ void RelayClickAction::stopAction()
     state = LOW;
     digitalWrite(pinNumber, state);
     
-    //logLine("");
-    //logLine("Stopping relay action...");
+    logLine("");
+    logLine("Stopping relay action...");
 };
 
 void RelayClickAction::update() 
@@ -203,7 +199,7 @@ void RelayClickAction::update()
     }
     
     if ((millis() - old_millis) > clickDuration) {                
-        //log(".");
+        log(".");
         
         state = state == LOW ? HIGH : LOW;
         digitalWrite(pinNumber, state);
@@ -247,7 +243,7 @@ void ActionSequence::run(byte index)
         return;
     }
     
-    //logLine("Starting sequence run!");
+    // logLine("Starting sequence run!");
     
     old_millis = millis();
     
@@ -298,17 +294,17 @@ void ActionSequence::update()
                 
                 if (loop) {
                     currentAction = 0;
-                    logLine("Repeating the whole sequence...");
+                    // logLine("Repeating the whole sequence...");
                 } else {
                     isRunning = 0;
-                    logLine("All tasks are done...");
+                    // logLine("All tasks are done...");
                     return;
                 }
             }
                             
-            log("Current action = ");
-            log(currentAction);
-            logLine(" | Beginning action...");
+            // log("Current action = ");
+            // log(currentAction);
+            // logLine(" | Beginning action...");
 
             sequence[currentAction]->runAction();
                                             
@@ -323,9 +319,9 @@ void ActionSequence::update()
 
             sequence[currentAction]->stopAction();
 
-            log("Current action = ");
-            log(currentAction);
-            logLine(" | Action complete...");
+            // log("Current action = ");
+            // log(currentAction);
+            // logLine(" | Action complete...");
 
             currentAction++;
 
@@ -363,5 +359,47 @@ void setupMotors()
     digitalWrite(9, LOW);
     digitalWrite(10, LOW);
     digitalWrite(11, LOW);
+}
+
+
+
+ActuationTimer::ActuationTimer(unsigned long tO, unsigned long wO)
+{
+    timeOut = tO;
+    waitTime = wO;
+    
+    lastInitiationTime = millis();
+}
+
+byte ActuationTimer::isLate()
+{
+    if (isInWaitTime) {
+        return 1;
+    }
+    
+    if (millis() - lastInitiationTime > timeOut) {
+        return 1;
+    }
+        
+    return 0;
+}
+
+void ActuationTimer::wasInitiated()
+{
+    if (isInWaitTime) {
+        return;
+    }
+    
+    log("boooooh");
+    lastInitiationTime = millis();
+}
+
+void ActuationTimer::update()
+{
+    if ((millis() - lastInitiationTime) < waitTime) {
+        isInWaitTime = 1;
+    } else {
+        isInWaitTime = 0;
+    }
 }
 

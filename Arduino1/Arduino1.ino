@@ -25,6 +25,11 @@ unsigned long interActivityFactor = 0;
 
 unsigned long interActivityTicker = 0;
 
+ActuationTimer lightL0AT(15000, 1000);
+ActuationTimer lightL8AT(25000, 1000);
+ActuationTimer lightL12AT(20000, 1000);
+// ActuationTimer lightL12AT(10000);
+
 void setup() 
 {
     setupMotors();
@@ -71,57 +76,25 @@ void lightL0(uint16_t val) {
     if (val < 360) {
         analogWrite(2, 255);    
         interActivityFactor++;
+        lightL0AT.wasInitiated();
     } else {
         analogWrite(2, 0);
     }
 }
+// Master reset
 void lightL7(uint16_t val) {
     if (val < 360) {
         offAll = 1;
-        // analogWrite(2, 0);
-        // analogWrite(9, 0);
-        
-        // cricketSounds[1].stop();
         analogWrite(3, 0);
-        // analogWrite(8, 0);
         cricketSounds[2].stop();
         cricketSounds[4].stop();
+        frogCroak.stop();
         
         if (interActivityFactor > 110) {
-            interActivityFactor = interActivityFactor - 100;
+            interActivityFactor = 0;
         }
     } else {
-        offAll = 0;        
-        
-        if (interActivityFactor > 7500 && interActivityFactor < 10000) {
-            // cricketSounds[1].run();  
-            cricketSounds[2].run();
-            cricketSounds[4].stop();
-            analogWrite(3, 0);
-            // analogWrite(8, 0);              
-        } else if (interActivityFactor > 10000 && interActivityFactor < 15000) {
-            // cricketSounds[1].run();
-            cricketSounds[2].run();
-            cricketSounds[4].run();
-            analogWrite(3, 0);
-            // analogWrite(8, 0);
-        } else if (interActivityFactor > 15000) {
-            // cricketSounds[1].run();
-            cricketSounds[2].run();
-            cricketSounds[4].run();
-            analogWrite(3, 255);
-            // analogWrite(8, 255);
-            // analogWrite(2, 255);
-            // analogWrite(9, 255);
-        } else {
-            // cricketSounds[1].stop();
-            cricketSounds[2].stop();
-            cricketSounds[4].stop();
-            analogWrite(3, 0);
-            // analogWrite(8, 0);
-            // analogWrite(2, 0);
-            // analogWrite(9, 0);
-        }
+        offAll = 0;
     }
 }
 void lightL8(uint16_t val) {
@@ -132,6 +105,7 @@ void lightL8(uint16_t val) {
     if (val < 300) {
         cricketSounds[3].run();
         interActivityFactor++;
+        lightL8AT.wasInitiated();
     } else {
         cricketSounds[3].stop();
     }
@@ -144,6 +118,7 @@ void lightL12(uint16_t val) {
     if (val < 300) {
         cricketSounds[5].run();
         interActivityFactor++;
+        lightL12AT.wasInitiated();
     } else {
         cricketSounds[5].stop();
     }
@@ -154,6 +129,7 @@ void touchC3(byte interval) {
     if (offAll) {
         return;
     }
+    
     // Serial.println(interval);
     if (interval < CAP5_MAX && interval > CAP5_MIN) {
         cricketSounds[0].run();
@@ -176,45 +152,6 @@ void touchC10(byte interval)
         cricketSounds[1].stop();
     }
 }
-// 
-// void touchC21(byte interval) {
-//     if (offAll) {
-//         return;
-//     }
-//     Serial.println(interval);
-//     if (interval < CAP5_MAX && interval > CAP5_MIN) {
-//         // cricketSounds[0].run();
-//         // interActivityFactor++;
-//     } else {
-//          // cricketSounds[0].stop();
-//      }
-// }
-
-// 
-// // CACOPHONY
-// void touchCap5(byte interval)
-// {
-//     if (interval < CAP5_MAX && interval > CAP5_MIN) {
-//          if (!offAll) {
-//              analogWrite(10, 255);
-//              analogWrite(7, 255);
-//              analogWrite(11, 255);
-//              interActivityFactor++;
-//          } else {
-//              analogWrite(10, 0);
-//              analogWrite(7, 0);
-//              analogWrite(11, 0);
-//          }
-//      } else {
-//          analogWrite(10, 0);
-//          analogWrite(7, 0);   
-//          analogWrite(11, 0);
-//      }
-// }
-
-
-
-
 
 void loop() 
 {
@@ -227,43 +164,36 @@ void loop()
        logLine(interActivityFactor);
        if (!offAll) {
            if (interActivityFactor > 7500 && interActivityFactor < 10000) {
-               // cricketSounds[1].run();  
                cricketSounds[2].run();
                cricketSounds[4].stop();
                analogWrite(3, 0);
-               // analogWrite(8, 0);              
+               frogCroak.stop();
            } else if (interActivityFactor > 10000 && interActivityFactor < 15000) {
-               // cricketSounds[1].run();
                cricketSounds[2].run();
                cricketSounds[4].run();
                analogWrite(3, 0);
-               // analogWrite(8, 0);
+               frogCroak.stop();
            } else if (interActivityFactor > 15000) {
                // cricketSounds[1].run();
                cricketSounds[2].run();
                cricketSounds[4].run();
                analogWrite(3, 255);
-               // analogWrite(8, 255);
-               // analogWrite(2, 255);
-               // analogWrite(9, 255);
+               frogCroak.run();
            } else {
-               // cricketSounds[1].stop();
                cricketSounds[2].stop();
                cricketSounds[4].stop();
                analogWrite(3, 0);
-               // analogWrite(8, 0);
-               // analogWrite(2, 0);
-               // analogWrite(9, 0);
+               frogCroak.stop();
            }
        }
        
        if (interActivityFactor > 600) {
-           interActivityFactor = interActivityFactor - 100;
+           interActivityFactor = interActivityFactor - 500;
        }
        
        interActivityTicker = millis();
    }
-
+   
     // To dispatch touch events
     touchDispatcher();
     
@@ -280,7 +210,29 @@ void loop()
         j++;
     }
     
-    // cricketSound1.update();
+    lightL0AT.update();
+    if (lightL0AT.isLate()) {
+        analogWrite(2, 255);
+        lightL0AT.wasInitiated();
+    } else {
+        analogWrite(2, 0);
+    }
+    
+    lightL8AT.update();
+    if (lightL8AT.isLate()) {
+        cricketSounds[3].run();
+        lightL8AT.wasInitiated();
+    } else {
+        cricketSounds[3].stop();
+    }
+    
+    lightL12AT.update();
+    if (lightL12AT.isLate()) {
+        cricketSounds[5].run();
+        lightL12AT.wasInitiated();
+    } else {
+        cricketSounds[5].stop();
+    }
 }
 
 
@@ -290,22 +242,24 @@ void setupAmbientSoundActions()
     // Frog Actions and sequences
     // randomMotor1.init(2, 250);
     
-    frogCroakLerpAction1.init(8, 40, 230, 1200);
-    frogCroakLerpAction2.init(8, 150, 250, 1000);
-    frogCroakLerpAction3.init(8, 0, 0, 100);
+    frogCroakLerpAction1.init(8, 100, 150, 200);
+    frogCroakLerpAction2.init(8, 50, 100, 300);
+    frogCroakLerpAction3.init(8, 0, 0, 5000);
     
-    frogCroak.addAction(frogCroakLerpAction1, 0, 1200);
-    frogCroak.addAction(frogCroakLerpAction2, 1000, 1000);
-    frogCroak.addAction(frogCroakLerpAction2, 1000, 1000);
-    frogCroak.addAction(frogCroakLerpAction2, 1000, 1000);
-    frogCroak.addAction(frogCroakLerpAction3, 150, 100);
+    frogCroak.addAction(frogCroakLerpAction1, 0, 200);
+    frogCroak.addAction(frogCroakLerpAction1, 100, 200);
+    frogCroak.addAction(frogCroakLerpAction2, 3500, 300);
+    frogCroak.addAction(frogCroakLerpAction2, 100, 300);
+    frogCroak.addAction(frogCroakLerpAction1, 3500, 200);
+    frogCroak.addAction(frogCroakLerpAction1, 100, 200);
+    frogCroak.addAction(frogCroakLerpAction2, 3500, 300);
+    frogCroak.addAction(frogCroakLerpAction2, 100, 300);
+    frogCroak.addAction(frogCroakLerpAction1, 3500, 200);
+    frogCroak.addAction(frogCroakLerpAction1, 100, 200);    
+    frogCroak.addAction(frogCroakLerpAction2, 3500, 300);
+    frogCroak.addAction(frogCroakLerpAction2, 100, 300);
+    frogCroak.addAction(frogCroakLerpAction3, 500, 5000);
     
-    // frogCroak.addAction(frogCroakMotorAction1, 100, 400);
-    // frogCroak.addAction(frogCroakMotorAction1, 2000, 500);
-    // frogCroak.addAction(frogCroakMotorAction1, 100, 400);
-    // frogCroak.addAction(frogCroakMotorAction1, 2000, 500);
-    // frogCroak.addAction(frogCroakMotorAction1, 100, 400);
-
     byte j = 0;
     while (j < 6) {
         cricketRelays[j].init(14 + j, 10);
@@ -330,12 +284,10 @@ void readSerialCommands()
 
         if (c == 'q') {
             frogCroak.run();
-            // analogWrite(8, 255);
         }
         
         if (c == 'a') {
             frogCroak.stop();
-            // analogWrite(8, 0);
         }
         
         if (c == 'w') {

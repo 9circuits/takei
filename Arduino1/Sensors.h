@@ -29,7 +29,7 @@
 #define CAP4_MAX 7
 // 
 #define CAP5_MIN 5
-#define CAP5_MAX 20
+#define CAP5_MAX 25
 // 
 #define CAP6_MIN 20
 #define CAP6_MAX 40

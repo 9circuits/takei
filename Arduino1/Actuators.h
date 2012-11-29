@@ -126,6 +126,20 @@ public:
 
 void setupMotors();
 
-
+class ActuationTimer
+{
+private:
+    unsigned long timeOut;
+    unsigned long waitTime;
+    
+    unsigned long lastInitiationTime;
+    
+    byte isInWaitTime;
+public:
+    ActuationTimer(unsigned long, unsigned long);
+    byte isLate();
+    void wasInitiated();
+    void update();
+};
 
 #endif // __TAKEI_ACTUATORS__
