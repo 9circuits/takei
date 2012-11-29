@@ -139,12 +139,12 @@ void MotorLerpAction::update()
     if ((millis() - old_millis) > timeDivision) {
         currentFrequency = currentFrequency + 1 * multiplier;
         
-        //logWrite(pinNumber, currentFrequency);
+        // log(pinNumber, currentFrequency);
         
         old_millis = millis();
         
-        //log(currentFrequency);
-        //log(", ");
+        // log(currentFrequency);
+        // log(", ");
     }
 };
 
@@ -298,17 +298,17 @@ void ActionSequence::update()
                 
                 if (loop) {
                     currentAction = 0;
-                    //logLine("Repeating the whole sequence...");
+                    logLine("Repeating the whole sequence...");
                 } else {
                     isRunning = 0;
-                    //logLine("All tasks are done...");
+                    logLine("All tasks are done...");
                     return;
                 }
             }
                             
-            //log("Current action = ");
-            //log(currentAction);
-            //logLine(" | Beginning action...");
+            log("Current action = ");
+            log(currentAction);
+            logLine(" | Beginning action...");
 
             sequence[currentAction]->runAction();
                                             
@@ -323,9 +323,9 @@ void ActionSequence::update()
 
             sequence[currentAction]->stopAction();
 
-            //log("Current action = ");
-            //log(currentAction);
-            //logLine(" | Action complete...");
+            log("Current action = ");
+            log(currentAction);
+            logLine(" | Action complete...");
 
             currentAction++;
 
